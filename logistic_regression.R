@@ -4,7 +4,7 @@
 ## Logistic regression
 ## ───────────────────────
 
-##   This far we have used the `lm' function to fit our regression models.
+##   Thus far we have used the `lm' function to fit our regression models.
 ##   `lm' is great, but limited–in particular it only fits models for
 ##   continuous dependent variables. For categorical dependent variables we
 ##   can use the `glm()' function.
@@ -81,7 +81,7 @@ cbind(predDat, predict(hyp.out, type = "response",
                        newdata = predDat))
 
 ##   This tells us that a 33 year old female has a 13% probability of
-##   having been diagnosed with hypertension, while and 63 year old female
+##   having been diagnosed with hypertension, while a 63 year old female
 ##   has a 48% probability of having been diagnosed.
 
 ## Packages for  computing and graphing predicted values
@@ -90,6 +90,7 @@ cbind(predDat, predict(hyp.out, type = "response",
 ##   Instead of doing all this ourselves, we can use the effects package to
 ##   compute quantities of interest for us (cf. the Zelig package).
 
+install.packages("effects")
 library(effects)
 plot(allEffects(hyp.out))
 
@@ -100,8 +101,67 @@ plot(allEffects(hyp.out))
 
 ##   1. Use glm to conduct a logistic regression to predict ever worked
 ##      (everwrk) using age (age_p) and marital status (r_maritl).
+
+## Let's look at the structure of each of the variables we will be incorporating into our regression 
+
+str(NH11$age_p)
+str(NH11$r_maritl) 
+
+## age_p looks like a simple number variable but r_maritl is a factor variable with 10 levels.
+## Let's take a deeper dive and look at all the levels that comprise r_maritl
+
+levels(NH11$r_maritl)
+
+## There appear to be 10 different marital status' ranging from "0 Under 14 years" to "Unknown marital
+## status". Let's see the frequency of each of these levels in a table.
+
+table(NH11$r_maritl)
+
+## After look at a frequency table for each of the different levels we see that two levels do not have
+## values in the data - "0 Under 14 years" and "3 Married - spouse in household unknown". We should keep
+## this in mind as we develop our model and probability estimates.
+
+## Let's create a simple logistic model to predict everwrk using age_p and r_maritl
+
+mod1 <- glm(everwrk ~ age_p + r_maritl, data=NH11, family="binomial")
+coef(summary(mod1))
+
 ##   2. Predict the probability of working for each level of marital
 ##      status.
+
+## Let's create a data set that sets age_p equal to the mean age for the data set (calculated with NA
+## values removed), and just those levels of r_maritl that are actually represented in the data 
+
+pred1 <- with(NH11,
+              expand.grid(age_p = mean(age_p, na.rm = TRUE),
+                          r_maritl = c("1 Married - spouse in household",
+                                       "2 Married - spouse not in household",
+                                       "4 Widowed",
+                                       "5 Divorced",
+                                       "6 Separated",
+                                       "7 Never married",
+                                       "8 Living with partner",
+                                       "9 Unknown marital status")))
+
+## Now, let's predict everwrk at those levels
+
+cbind(pred1, predict(mod1, 
+                     type = "response",
+                     se.fit = TRUE,
+                     interval = "confidence",
+                     newdata = pred1))
+
+## It appears that when controlling for age (with the mean age of ~48), the probability of having ever
+## worked for each of the levels is as follows: 
+  
+##      1 Married - spouse in household = 0.13400804, or ~13% chance
+##      2 Married - spouse not in household 0.14374636, or ~14% chance
+##      4 Widowed 0.23521523, or ~24% chance
+##      5 Divorced 0.06926155, or ~7% chance
+##      6 Separated 0.12106080, or ~12% chance
+##      7 Never married 0.18082825, or ~18% chance
+##      8 Living with partner 0.09011744, or ~9% chance
+##      9 Unknown marital status 0.20999802, or ~21% chance
 
 ##   Note that the data is not perfectly clean and ready to be modeled. You
 ##   will need to clean up at least some of the variables before fitting
