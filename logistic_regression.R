@@ -41,7 +41,7 @@ levels(NH11$hypev) # check levels of hypev
 NH11$hypev <- factor(NH11$hypev, levels=c("2 No", "1 Yes"))
 # run our regression model
 hyp.out <- glm(hypev~age_p+sex+sleep+bmi,
-              data=NH11, family="binomial")
+               data=NH11, family="binomial")
 coef(summary(hyp.out))
 
 ## Logistic regression coefficients
@@ -153,7 +153,7 @@ cbind(pred1, predict(mod1,
 
 ## It appears that when controlling for age (with the mean age of ~48), the probability of having ever
 ## worked for each of the levels is as follows: 
-  
+
 ##      1 Married - spouse in household = 0.13400804, or ~13% chance
 ##      2 Married - spouse not in household 0.14374636, or ~14% chance
 ##      4 Widowed 0.23521523, or ~24% chance
